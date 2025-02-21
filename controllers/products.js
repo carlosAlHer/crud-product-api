@@ -40,11 +40,11 @@ exports.store = async (request, res) => {
 exports.update = async (request, res) => {
 
     const { body } = request;
-
+    
     const newDocument = new Document(body);
 
     const validationSuccess = await documentHasAllData(newDocument);
-
+    console.log(body )
     if (!validationSuccess)
         return res.status(400).json({ error: true });
 

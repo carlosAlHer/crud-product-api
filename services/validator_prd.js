@@ -1,7 +1,7 @@
 const { Validator } = require('node-input-validator');
 
 exports.documentHasAllData = async (document) => {
- 
+    //console.log(document)
     const validator = new Validator(document, {
         
         name: 'required|maxLength:100|minLength:5',
