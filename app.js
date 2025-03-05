@@ -17,5 +17,5 @@ const categRoutes = require('./routing/categories.js');
 const prdRoutes = require('./routing/products.js');
 app.use('/api/categ', categRoutes);
 app.use('/api/prd', prdRoutes);
-app.listen(port, () => console.log(`Dolphin app listening on port ${port}!`));
+app.listen(port, () => console.log(`app listening on port ${port}!`));
 

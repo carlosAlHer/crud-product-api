@@ -1,66 +1,74 @@
-const Document = require('../models/products.js');
+const Product = require('../models/products.js');
 const { documentHasAllData } = require('../services/validator_prd.js');
 
-exports.getAll = (request, res) => {
+const getById = async (req, res) => {
 
-    const callback = (err, documents) => (err)
-        ? res.send(err)
-        : res.send({ documents });
+    try {
+        const product = await Product.getById(req.params.id);
+        if (!product) return res.status(404).json({ error: "Producto no encontrado" });
+        res.status(200).json(product);
 
-    Document.getAll(callback);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
 }
 
-exports.getById = (request, res) => {
-    const { id } = request.params;
+const getAll = async (req, res) => {
+    try {
 
-    const callback = (err, document) => (err)
-        ? res.send(err)
-        : res.send({ document });
+        const product = await Product.getAll();
+        if (!product) return res.status(404).json({ error: "No hay productos" });
+        res.status(200).json(product);
 
-    Document.getById({ id }, callback);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+}
+const store = async (req, res) => {
+    try {
+        const { body } = req;
+       
+        const validationSuccess = await documentHasAllData(body);
+        if (!validationSuccess) return res.status(400).json({ error: true });
+
+        const product = await Product.store(body);
+        if (!product) return res.status(404).json({ error: "Error al guardar producto" });
+        res.status(200).json({ error: false, status: "success", id_product: product.insertId });
+
+    } catch (error) {
+
+        return res.status(500).json({ error: error.message });
+    }
+}
+const update = async (req, res) => {
+
+    try {
+
+        const { body } = req;
+        const validationSuccess = await documentHasAllData(body);
+        if(!validationSuccess) return res.status(400).json({error: true});
+
+        const product = await Product.update(body);
+
+        if (!product) return res.status(400).json({ error: "Error al acturalizar producto" });
+        return res.status(200).json({ error: false, status: "success", })
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+}
+const delet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        
+        const product = await Product.delet(id);
+        if (!product) return res.status(400).json({ error: "Error al eliminar producto" });
+        return res.status(200).json({ error: false, status: "susscces" });
+
+    } catch (error) {
+
+        return res.status(500).json({ error: error.message });
+    }
 }
 
-exports.store = async (request, res) => {
-    const { body } = request;
-
-    const newDocument = new Document(body);
-
-    const validationSuccess = await documentHasAllData(newDocument);
-
-    if (!validationSuccess)
-        return res.status(400).json({ error: true });
-
-    const callback =  (err, result) => (err) 
-        ? res.send(err)
-        : res.json({ error: false, status: "success", id_product: result.insertId });
-
-    Document.store(newDocument, callback);
-};
-
-exports.update = async (request, res) => {
-
-    const { body } = request;
-    
-    const newDocument = new Document(body);
-
-    const validationSuccess = await documentHasAllData(newDocument);
-    console.log(body )
-    if (!validationSuccess)
-        return res.status(400).json({ error: true });
-
-    const callback = err => (err)
-        ? res.send(err)
-        : res.json({ error: false, status: "success" });
-
-    Document.update(newDocument, callback);
-};
-
-exports.delete = (request, res) => {
-    const { id } = request.params;
-
-    const callback = err => (err) 
-        ? res.send(err)
-        : res.json({ error: false, status: "success" });
-
-    Document.delete(id, callback);
-}
+module.exports = { getById, getAll, store, update, delet };

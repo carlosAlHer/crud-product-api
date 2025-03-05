@@ -1,14 +1,15 @@
 const { Validator } = require('node-input-validator');
 
-exports.documentHasAllData = async (document) => {
-    //console.log(document)
-    const validator = new Validator(document, {
-        
-        name: 'required|maxLength:100|minLength:5',
-        description: 'required|maxLength:100|minLength:5' ,
-        price: 'required',
-        category_id: 'required',
-    });
+const rules = {
+    name: 'required|string|maxLength:100|minLength:2',
+    description: 'required|string|maxLength:100|minLength:2' ,
+    price: 'required|numeric',
+    category_id: 'required|numeric'
+}
+
+const documentHasAllData = async (data) => {
+    
+    const validator = new Validator(data, rules)
     
     const isValid = await validator.check()
 
@@ -16,3 +17,4 @@ exports.documentHasAllData = async (document) => {
 
     return isValid;
 }
+module.exports =  { documentHasAllData } ;

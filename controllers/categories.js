@@ -1,65 +1,83 @@
-const Document = require('../models/categories.js');
-const { documentHasAllData } = require('../services/validator_categ.js');
+const Category = require('../models/categories.js');//Modelo
+const Product = require('../models/products.js');
+const { documentHasAllData } = require('../services/validator_categ.js');//Validador
 
-exports.getAll = (request, res) => {
 
-    const callback = (err, documents) => (err)
-        ? res.send(err)
-        : res.send({ documents });
+const getById = async (req, res) => {
 
-    Document.getAll(callback);
-}
+    try {
 
-exports.getById = (request, res) => {
-    const { id } = request.params;
+        const category = await Category.getById(req.params.id);
+        if (!category) return res.status(404).json({ error: "Categoría no encontrada" });
+        res.status(200).json(category);
 
-    const callback = (err, document) => (err)
-        ? res.send(err)
-        : res.send({ document });
-
-    Document.getById({ id }, callback);
-}
-
-exports.store = async (request, res) => {
-    
-    const { body } = request;
-    
-    const newDocument = new Document(body);
-
-    const validationSuccess = await documentHasAllData(newDocument);
-
-    if (!validationSuccess) return res.status(400).json({ error: true });
-   
-    const callback =  (err, result) => (err) 
-        ? res.send(err)
-        : res.json({ error: false, status: "success", id_categoria:  result.insertId});
-
-    Document.store(newDocument, callback);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 };
 
-exports.update = async (request, res) => {
-    const { body } = request;
+const getAll = async (req, res) => {
+    try {
+        const category = await Category.getAll();
+        if (!category) return res.status(404).json({ error: "No hay categorías" });
+        res.status(200).json(category);
 
-    const newDocument = new Document(body);
-
-    const validationSuccess = await documentHasAllData(newDocument);
-
-    if (!validationSuccess)
-        return res.status(400).json({ error: true });
-
-    const callback = err => (err)
-        ? res.send(err)
-        : res.json({ error: false, status: "success" });
-
-    Document.update(newDocument, callback);
-};
-
-exports.delete = (request, res) => {
-    const { id } = request.params;
-
-    const callback = err => (err) 
-        ? res.send(err)
-        : res.json({ error: false, status: "success" });
-
-    Document.delete(id, callback);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 }
+
+const store = async (req, res) => {
+
+    try {
+        const { body } = req;
+
+        const validationSuccess = await documentHasAllData(body);
+        if (!validationSuccess) return res.status(400).json({ error: true });
+
+        const category = await Category.store(body);
+        if (!category) return res.status(404).json({ error: "Error al guardar categoría" });
+        res.status(200).json({ error: false, status: "success", id_categoria: category.insertId });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+const update = async (req, res) => {
+    try {
+        const { body } = req;
+
+        const validationSuccess = await documentHasAllData(body);
+        if(!validationSuccess) return res.status(400).json({error: true});
+
+
+        const category = await Category.update(body);
+
+        if (!category) return res.status(400).json({ error: "Error al acturalizar categoría" });
+        return res.status(200).json({ error: false, status: "success", })
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+const delet = async (req, res) => {
+    try {
+        const id = req.params.id;
+        //Primero se verifica que la categoria no este asociada a ningun producto 
+        
+        const cat = await Product.categoryProduct(id);
+        if(cat) return res.status(400).json({error:true, status: "error"})
+
+        const category = await Category.delet(id);
+        if (!category) return res.status(400).json({ error: "Error al eliminar categoría" });
+        
+        return res.status(200).json({ error: false, status: "susscces",});
+
+    } catch (error) {
+
+    }
+}
+
+module.exports = { getById, getAll, store, update, delet };
